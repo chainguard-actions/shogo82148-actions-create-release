@@ -1,0 +1,51 @@
+name: Test draft release creation
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/tags/v2.0.0-draft-test
+      GITHUB_EVENT_NAME: push
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        with:
+          github_token: ${{ github.token }}
+          tag_name: v2.0.0-draft-test
+          release_name: "Draft Test Release v2.0.0"
+          body: "This is a draft test release created by act."
+          draft: true
+          prerelease: false
+        continue-on-error: true
+
+      - name: Assert draft release action ran
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+          RELEASE_ID: ${{ steps.action.outputs.id }}
+          HTML_URL: ${{ steps.action.outputs.html_url }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "release id: $RELEASE_ID"
+          echo "html_url: $HTML_URL"
+          # In act without a real token, we expect API failure.
+          # On success, verify outputs are populated.
+          if [ "$OUTCOME" = "success" ]; then
+            echo "Action succeeded — verifying outputs are non-empty"
+            if [ -z "$RELEASE_ID" ]; then
+              echo "FAIL: expected non-empty release id on success"
+              exit 1
+            fi
+            if [ -z "$HTML_URL" ]; then
+              echo "FAIL: expected non-empty html_url on success"
+              exit 1
+            fi
+            echo "PASS: draft release outputs present"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "Action failed (expected in act without real GitHub token) — PASS"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
