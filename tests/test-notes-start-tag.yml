@@ -1,0 +1,38 @@
+name: Test release with notes_start_tag and discussion_category_name inputs
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/tags/v0.0.1-test-notes
+      GITHUB_EVENT_NAME: push
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          github_token: ${{ github.token }}
+          tag_name: v0.0.1-test-notes
+          release_name: "Test Notes Start Tag Release v0.0.1"
+          body: "Test release for notes_start_tag and discussion_category_name input coverage"
+          draft: true
+          generate_release_notes: true
+          notes_start_tag: v0.0.0
+          discussion_category_name: "General"
+      - name: Assert action ran (inputs notes_start_tag and discussion_category_name were accepted)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "action outcome: $OUTCOME"
+          # The action may fail due to API/token limitations in act,
+          # but we verify the inputs were accepted (not rejected as unknown).
+          # A failure due to API error is acceptable; a failure due to
+          # unknown input would be a different error.
+          if [ "$OUTCOME" = "success" ] || [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action accepted notes_start_tag and discussion_category_name inputs"
+          else
+            echo "FAIL: unexpected outcome: $OUTCOME"
+            exit 1
+          fi

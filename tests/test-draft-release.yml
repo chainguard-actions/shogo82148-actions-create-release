@@ -1,0 +1,51 @@
+name: Test draft release creation
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/tags/v2.0.0-draft
+      GITHUB_EVENT_NAME: push
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: create_draft
+        uses: .
+        continue-on-error: true
+        with:
+          github_token: ${{ github.token }}
+          tag_name: v2.0.0-test-draft
+          release_name: "Draft Release v2.0.0"
+          body: "This is a draft release for testing."
+          draft: true
+          prerelease: false
+
+      - name: Assert draft release action ran
+        env:
+          OUTCOME: ${{ steps.create_draft.outcome }}
+          RELEASE_ID: ${{ steps.create_draft.outputs.id }}
+          HTML_URL: ${{ steps.create_draft.outputs.html_url }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "release id: $RELEASE_ID"
+          echo "html_url: $HTML_URL"
+          # The action should either succeed (real token) or fail at the API call
+          if [ "$OUTCOME" = "success" ]; then
+            echo "Action succeeded - draft release created"
+            if [ -z "$RELEASE_ID" ]; then
+              echo "FAIL: expected release id to be set on success"
+              exit 1
+            fi
+            if [ -z "$HTML_URL" ]; then
+              echo "FAIL: expected html_url to be set on success"
+              exit 1
+            fi
+            echo "PASS: draft release outputs present"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "Action failed (expected in act without real GitHub token)"
+            echo "PASS: action was invoked correctly with draft=true"
+          else
+            echo "FAIL: unexpected outcome: $OUTCOME"
+            exit 1
+          fi

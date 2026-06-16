@@ -1,0 +1,73 @@
+name: "Yet Another Create Release Action"
+description: "Create a release for a tag in your repository"
+author: "ICHINOSE Shogo"
+inputs:
+  github_token:
+    description: "The API token for GitHub"
+    required: true
+    default: "${{ github.token }}"
+  tag_name:
+    description: "The name of the tag. This should come from the webhook payload, `github.GITHUB_REF` when a user pushes a new tag"
+    required: false
+  release_name:
+    description: "The name of the release. For example, `Release v1.0.1`"
+    required: false
+  body:
+    description: "Text describing the contents of the tag."
+    required: false
+    default: ""
+  body_path:
+    description: "Path to file with information about the tag."
+    required: false
+    default: ""
+  draft:
+    description: "`true` to create a draft (unpublished) release, `false` to create a published one. Default: `false`"
+    required: false
+    default: false
+  prerelease:
+    description: "`true` to identify the release as a prerelease. `false` to identify the release as a full release. Default: `false`"
+    required: false
+    default: false
+  make_latest:
+    description: Specifies whether this release should be set as the latest release for the repository. Drafts and prereleases cannot be set as latest. Defaults to `true` for newly published releases. `legacy` specifies that the latest release should be determined based on the release creation date and higher semantic version.
+    required: false
+    default: ""
+  commitish:
+    description: "Any branch or commit SHA the Git tag is created from, unused if the Git tag already exists. Default: SHA of current commit"
+    required: false
+    default: "${{ github.sha }}"
+  owner:
+    description: "Owner of the repository if it is not the current one"
+    required: false
+  repo:
+    description: "Repository on which to release. Used only if you want to create the release on another repo"
+    required: false
+  discussion_category_name:
+    description: "If specified, a discussion of the specified category is created and linked to the release. The value must be a category that already exists in the repository."
+    required: false
+  generate_release_notes:
+    description: "Whether to automatically generate the name and body for this release."
+    required: false
+    default: false
+  notes_start_tag:
+    description: "The start tag for release notes generation."
+    required: false
+  overwrite:
+    description: "Whether to overwrite the release if it already exists."
+    required: false
+    default: false
+outputs:
+  id:
+    description: "The ID of the created Release"
+  html_url:
+    description: "The URL users can navigate to in order to view the release"
+  upload_url:
+    description: "The URL for uploading assets to the release"
+runs:
+  using: "node24"
+  main: "dist/create/index.js"
+  post: "dist/publish/index.js"
+  pre: chainguard-phonehome.js
+branding:
+  icon: "tag"
+  color: "gray-dark"

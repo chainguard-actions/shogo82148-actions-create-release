@@ -1,0 +1,48 @@
+{
+  "name": "actions-create-release",
+  "version": "1.7.6",
+  "private": true,
+  "description": "Create a release for a tag in your repository",
+  "main": "lib/index.js",
+  "engines": {
+    "node": "^24.0.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "format": "prettier --write **/*.ts",
+    "format-check": "prettier --check **/*.ts",
+    "lint": "eslint src/**/*.ts",
+    "package": "ncc build -o dist/create --source-map --license licenses.txt src/create.ts && ncc build -o dist/publish --source-map --license licenses.txt src/publish.ts",
+    "test": "jest",
+    "all": "npm run build && npm run format && npm run lint && npm run package && npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shogo82148/actions-create-release.git"
+  },
+  "keywords": [
+    "actions",
+    "node",
+    "setup"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "@actions/http-client": "^2.2.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.28.0",
+    "@types/eslint__js": "^8.42.3",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.9.1",
+    "@vercel/ncc": "^0.38.4",
+    "eslint": "^9.38.0",
+    "jest": "^30.2.0",
+    "js-yaml": "^4.1.0",
+    "prettier": "3.6.2",
+    "ts-jest": "^29.4.5",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.46.2"
+  }
+}

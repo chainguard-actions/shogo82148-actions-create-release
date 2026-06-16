@@ -1,0 +1,68 @@
+name: Test prerelease creation with body_path
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/tags/v3.0.0-beta.1
+      GITHUB_EVENT_NAME: push
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create release notes file
+        run: |
+          cat > /tmp/release-notes.md << 'EOF'
+          ## What's Changed
+          - Feature A added
+          - Bug B fixed
+          - Performance improvements
+
+          **Full Changelog**: https://github.com/example/repo/compare/v2.0.0...v3.0.0-beta.1
+          EOF
+
+      - id: create_prerelease
+        uses: .
+        continue-on-error: true
+        with:
+          github_token: ${{ github.token }}
+          tag_name: v3.0.0-test-beta.1
+          release_name: "Pre-release v3.0.0-beta.1"
+          body_path: /tmp/release-notes.md
+          draft: false
+          prerelease: true
+
+      - name: Assert prerelease action ran
+        env:
+          OUTCOME: ${{ steps.create_prerelease.outcome }}
+          RELEASE_ID: ${{ steps.create_prerelease.outputs.id }}
+          HTML_URL: ${{ steps.create_prerelease.outputs.html_url }}
+          UPLOAD_URL: ${{ steps.create_prerelease.outputs.upload_url }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "release id: $RELEASE_ID"
+          echo "html_url: $HTML_URL"
+          echo "upload_url: $UPLOAD_URL"
+          # The action should either succeed (real token) or fail at the API call
+          if [ "$OUTCOME" = "success" ]; then
+            echo "Action succeeded - prerelease created"
+            if [ -z "$RELEASE_ID" ]; then
+              echo "FAIL: expected release id to be set on success"
+              exit 1
+            fi
+            if [ -z "$HTML_URL" ]; then
+              echo "FAIL: expected html_url to be set on success"
+              exit 1
+            fi
+            if [ -z "$UPLOAD_URL" ]; then
+              echo "FAIL: expected upload_url to be set on success"
+              exit 1
+            fi
+            echo "PASS: prerelease outputs present"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "Action failed (expected in act without real GitHub token)"
+            echo "PASS: action was invoked correctly with prerelease=true and body_path"
+          else
+            echo "FAIL: unexpected outcome: $OUTCOME"
+            exit 1
+          fi

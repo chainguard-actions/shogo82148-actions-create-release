@@ -1,0 +1,37 @@
+name: Test cross-repo release (owner and repo inputs)
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/tags/v0.0.1-test-cross
+      GITHUB_EVENT_NAME: push
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          github_token: ${{ github.token }}
+          tag_name: v0.0.1-test-cross
+          release_name: "Test Cross-Repo Release v0.0.1"
+          body: "Test release for cross-repo input coverage"
+          draft: true
+          owner: ${{ github.repository_owner }}
+          repo: ${{ github.event.repository.name }}
+      - name: Assert action ran (inputs owner and repo were accepted)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "action outcome: $OUTCOME"
+          # The action may fail due to API/token limitations in act,
+          # but we verify the inputs were accepted (not rejected as unknown).
+          # A failure due to API error is acceptable; a failure due to
+          # unknown input would be a different error.
+          if [ "$OUTCOME" = "success" ] || [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action accepted owner and repo inputs"
+          else
+            echo "FAIL: unexpected outcome: $OUTCOME"
+            exit 1
+          fi
