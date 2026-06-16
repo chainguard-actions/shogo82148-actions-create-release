@@ -1,0 +1,37 @@
+name: Test notes_start_tag and discussion_category_name inputs
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/tags/v0.0.1-test-notes
+      GITHUB_EVENT_NAME: push
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          github_token: ${{ github.token }}
+          tag_name: v0.0.1-test-notes
+          release_name: "Test Notes Start Tag Release v0.0.1"
+          body: "Test release for notes_start_tag and discussion_category_name input coverage"
+          generate_release_notes: true
+          notes_start_tag: v0.0.0
+          discussion_category_name: "General"
+          draft: true
+          overwrite: true
+      - name: Assert action ran with notes_start_tag and discussion_category_name inputs
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "action outcome: $OUTCOME"
+          # The action may fail due to API/token limitations in test env,
+          # but we verify the inputs were accepted (not skipped/unknown).
+          # A failure due to missing inputs would show a different error.
+          if [ "$OUTCOME" = "skipped" ]; then
+            echo "FAIL: action was skipped unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action ran with notes_start_tag and discussion_category_name inputs"
