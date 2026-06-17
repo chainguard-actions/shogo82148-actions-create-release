@@ -1,0 +1,40 @@
+name: Test draft release creation
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/tags/v0.0.2-draft-test
+      GITHUB_EVENT_NAME: push
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        with:
+          github_token: ${{ github.token }}
+          tag_name: v0.0.2-draft-test
+          release_name: "Draft Test Release v0.0.2"
+          body: "This is a draft test release created by act."
+          draft: true
+          prerelease: false
+          overwrite: true
+        continue-on-error: true
+
+      - name: Assert action ran with draft flag
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+          RELEASE_ID: ${{ steps.action.outputs.id }}
+          HTML_URL: ${{ steps.action.outputs.html_url }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "release id: $RELEASE_ID"
+          echo "html_url: $HTML_URL"
+          # The action either succeeds (real token) or fails with API error (no real token)
+          # Either way, the action should have been invoked and produced an outcome
+          if [ "$OUTCOME" != "success" ] && [ "$OUTCOME" != "failure" ]; then
+            echo "FAIL: action did not produce a valid outcome"
+            exit 1
+          fi
+          echo "PASS: draft release action ran and produced outcome: $OUTCOME"

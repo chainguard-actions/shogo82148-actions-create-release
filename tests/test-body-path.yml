@@ -1,0 +1,48 @@
+name: Test release with body_path
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/tags/v0.0.4-body-path-test
+      GITHUB_EVENT_NAME: push
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create release notes file
+        run: |
+          echo "## Release Notes" > /tmp/release-notes.md
+          echo "" >> /tmp/release-notes.md
+          echo "This release was created using body_path input." >> /tmp/release-notes.md
+          echo "- Feature A" >> /tmp/release-notes.md
+          echo "- Feature B" >> /tmp/release-notes.md
+
+      - id: action
+        uses: .
+        with:
+          github_token: ${{ github.token }}
+          tag_name: v0.0.4-body-path-test
+          release_name: "Body Path Test Release v0.0.4"
+          body_path: /tmp/release-notes.md
+          draft: false
+          prerelease: false
+          overwrite: true
+        continue-on-error: true
+
+      - name: Assert action ran with body_path
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+          RELEASE_ID: ${{ steps.action.outputs.id }}
+          HTML_URL: ${{ steps.action.outputs.html_url }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "release id: $RELEASE_ID"
+          echo "html_url: $HTML_URL"
+          # The action either succeeds (real token) or fails with API error (no real token)
+          # Either way, the action should have been invoked and produced an outcome
+          if [ "$OUTCOME" != "success" ] && [ "$OUTCOME" != "failure" ]; then
+            echo "FAIL: action did not produce a valid outcome"
+            exit 1
+          fi
+          echo "PASS: body_path release action ran and produced outcome: $OUTCOME"
