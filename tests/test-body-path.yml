@@ -1,0 +1,39 @@
+name: Test release creation with body_path input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/tags/v3.0.0
+      GITHUB_EVENT_NAME: push
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create release notes file
+        run: |
+          echo "## Changelog" > /tmp/release-notes.md
+          echo "- Feature A" >> /tmp/release-notes.md
+          echo "- Bug fix B" >> /tmp/release-notes.md
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          github_token: fake-token-for-testing
+          tag_name: v3.0.0
+          release_name: Release v3.0.0
+          body_path: /tmp/release-notes.md
+          draft: false
+          prerelease: false
+
+      - name: Assert action ran (not skipped)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "skipped" ]; then
+            echo "FAIL: action was skipped, expected it to run"
+            exit 1
+          fi
+          echo "PASS: body_path release action ran with outcome=$OUTCOME"
