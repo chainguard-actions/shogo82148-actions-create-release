@@ -1,4 +1,4 @@
-name: Test discussion_category_name input
+name: Test owner and repo inputs
 on:
   workflow_dispatch:
 jobs:
@@ -11,10 +11,11 @@ jobs:
         continue-on-error: true
         with:
           github_token: ${{ github.token }}
-          tag_name: v0.0.1-discussion-test
-          release_name: Discussion Category Test Release
-          body: Testing discussion_category_name input
-          discussion_category_name: General
+          tag_name: v0.0.1-owner-repo-test
+          release_name: Owner and Repo Input Test Release
+          body: Testing owner and repo inputs
+          owner: actions
+          repo: toolkit
       - name: Assert action ran (outputs set, or failed gracefully on the sentinel repo)
         env:
           OUTCOME: ${{ steps.action.outcome }}
@@ -29,7 +30,7 @@ jobs:
             fi
             echo "PASS: got html_url '$HTML_URL'"
           elif [ "$OUTCOME" = "failure" ]; then
-            echo "PASS: action failed gracefully (sentinel repo is not resolvable)"
+            echo "PASS: action failed gracefully (target repo is not writable or does not exist)"
           else
             echo "FAIL: unexpected outcome '$OUTCOME'"
             exit 1
