@@ -1,4 +1,4 @@
-name: Test owner and repo inputs
+name: Test notes_start_tag input
 on:
   workflow_dispatch:
 jobs:
@@ -11,11 +11,10 @@ jobs:
         continue-on-error: true
         with:
           github_token: ${{ github.token }}
-          tag_name: v0.0.1-owner-repo-test
-          release_name: Owner Repo Test Release
-          body: Testing owner and repo inputs
-          owner: shogo82148
-          repo: actions-create-release
+          tag_name: v0.0.1-notes-start-tag-test
+          release_name: Notes Start Tag Test Release
+          generate_release_notes: true
+          notes_start_tag: v0.0.0
       - name: Assert action ran (succeeded or failed gracefully on sentinel repo)
         env:
           OUTCOME: ${{ steps.action.outcome }}
@@ -30,7 +29,7 @@ jobs:
             fi
             echo "PASS: release created with id=$RELEASE_ID"
           elif [ "$OUTCOME" = "failure" ]; then
-            echo "PASS: action failed gracefully (sentinel repo is not resolvable or token lacks access)"
+            echo "PASS: action failed gracefully (sentinel repo is not resolvable)"
           else
             echo "FAIL: unexpected outcome '$OUTCOME'"
             exit 1
