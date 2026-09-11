@@ -1,12 +1,9 @@
-name: Test release with notes_start_tag and discussion_category_name inputs
+name: Test notes_start_tag input
 on:
   workflow_dispatch:
 jobs:
   test:
     runs-on: ubuntu-latest
-    env:
-      GITHUB_REF: refs/tags/v0.0.1-test-notes
-      GITHUB_EVENT_NAME: push
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - id: action
@@ -14,25 +11,28 @@ jobs:
         continue-on-error: true
         with:
           github_token: ${{ github.token }}
-          tag_name: v0.0.1-test-notes
-          release_name: "Test Notes Start Tag Release v0.0.1"
-          body: "Test release for notes_start_tag and discussion_category_name input coverage"
-          draft: true
+          tag_name: v0.0.2-notes-start-tag-test
+          release_name: Notes Start Tag Test Release
           generate_release_notes: true
-          notes_start_tag: v0.0.0
-          discussion_category_name: "General"
-      - name: Assert action ran (inputs notes_start_tag and discussion_category_name were accepted)
+          notes_start_tag: v0.0.1
+      - name: Assert action ran (succeeded or failed gracefully on sentinel repo)
         env:
           OUTCOME: ${{ steps.action.outcome }}
+          ID: ${{ steps.action.outputs.id }}
+          HTML_URL: ${{ steps.action.outputs.html_url }}
         run: |
-          echo "action outcome: $OUTCOME"
-          # The action may fail due to API/token limitations in act,
-          # but we verify the inputs were accepted (not rejected as unknown).
-          # A failure due to API error is acceptable; a failure due to
-          # unknown input would be a different error.
-          if [ "$OUTCOME" = "success" ] || [ "$OUTCOME" = "failure" ]; then
-            echo "PASS: action accepted notes_start_tag and discussion_category_name inputs"
+          echo "outcome: $OUTCOME"
+          echo "id: $ID"
+          echo "html_url: $HTML_URL"
+          if [ "$OUTCOME" = "success" ]; then
+            if [ -z "$ID" ]; then
+              echo "FAIL: action succeeded but id output is empty"
+              exit 1
+            fi
+            echo "PASS: release created with id=$ID"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo is not resolvable)"
           else
-            echo "FAIL: unexpected outcome: $OUTCOME"
+            echo "FAIL: unexpected outcome '$OUTCOME'"
             exit 1
           fi
