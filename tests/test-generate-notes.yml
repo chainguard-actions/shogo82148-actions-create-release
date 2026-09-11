@@ -1,4 +1,4 @@
-name: Test release creation with body_path
+name: Test release with auto-generated notes
 on:
   workflow_dispatch:
 jobs:
@@ -7,23 +7,14 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Create release notes file
-        run: |
-          cat > /tmp/release-notes.md << 'EOF'
-          ## What's Changed
-          - Feature A added
-          - Bug B fixed
-          - Performance improvements
-          EOF
-
       - id: action
         uses: .
         continue-on-error: true
         with:
           github_token: ${{ github.token }}
-          tag_name: v0.0.4-body-path-test
-          release_name: Release v0.0.4 (body_path test)
-          body_path: /tmp/release-notes.md
+          tag_name: v0.0.5-autonotes-test
+          release_name: Release v0.0.5 (auto notes)
+          generate_release_notes: true
           draft: false
           prerelease: false
 
@@ -47,7 +38,7 @@ jobs:
               echo "FAIL: action succeeded but 'html_url' output is empty"
               exit 1
             fi
-            echo "PASS: release created with body_path, id=$ID"
+            echo "PASS: release with auto-generated notes created, id=$ID"
           elif [ "$OUTCOME" = "failure" ]; then
             echo "PASS: action failed gracefully (sentinel repo is not resolvable)"
           else
