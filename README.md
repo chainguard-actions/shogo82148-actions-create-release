@@ -15,6 +15,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 | v1.9.0 | [`v1.9.0`](https://github.com/chainguard-actions/shogo82148-actions-create-release/tree/v1.9.0) | [`6a39603`](https://github.com/shogo82148/actions-create-release/commit/6a396031bc74c57403da1018fec74d24c6aa03cd) |
 | v1.9.1 | [`v1.9.1`](https://github.com/chainguard-actions/shogo82148-actions-create-release/tree/v1.9.1) | [`8674c0e`](https://github.com/shogo82148/actions-create-release/commit/8674c0ecee617c8dfb006526bcc22a362c70b88a) |
 | v1.9.2 | [`v1.9.2`](https://github.com/chainguard-actions/shogo82148-actions-create-release/tree/v1.9.2) | [`cfc5a83`](https://github.com/shogo82148/actions-create-release/commit/cfc5a8374495dd25fe96f758cc09251ab6286911) |
+| v1.9.3 | [`v1.9.3`](https://github.com/chainguard-actions/shogo82148-actions-create-release/tree/v1.9.3) | [`c172624`](https://github.com/shogo82148/actions-create-release/commit/c172624cc9dcd7e0a2211b7337e6860b882fc030) |
 
 ## Privacy
 
