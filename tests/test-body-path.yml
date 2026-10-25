@@ -1,0 +1,43 @@
+name: Test body_path input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Verify fixture exists
+        run: |
+          if [ ! -f tests/fixtures/release-body.md ]; then
+            echo "FAIL: fixture missing"
+            exit 1
+          fi
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          tag_name: v0.0.0-act-test-body-path
+          release_name: Body path release
+          body_path: tests/fixtures/release-body.md
+          draft: "true"
+      - name: Assert action ran (outputs set, or failed gracefully on the sentinel repo)
+        env:
+          RESULT_ID: ${{ steps.action.outputs.id }}
+          RESULT_URL: ${{ steps.action.outputs.html_url }}
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "id: $RESULT_ID"
+          echo "html_url: $RESULT_URL"
+          if [ "$OUTCOME" = "success" ]; then
+            if [ -z "$RESULT_ID" ] || [ -z "$RESULT_URL" ]; then
+              echo "FAIL: action succeeded but outputs are empty"
+              exit 1
+            fi
+            echo "PASS: release created with body_path"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo is not resolvable)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

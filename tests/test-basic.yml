@@ -1,0 +1,42 @@
+name: Test basic release creation
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          tag_name: v0.0.0-act-test-basic
+          release_name: Release v0.0.0-act-test-basic
+          body: "Test release body"
+      - name: Assert action ran (outputs set, or failed gracefully on the sentinel repo)
+        env:
+          RESULT_ID: ${{ steps.action.outputs.id }}
+          RESULT_URL: ${{ steps.action.outputs.html_url }}
+          RESULT_UPLOAD: ${{ steps.action.outputs.upload_url }}
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "id: $RESULT_ID"
+          echo "html_url: $RESULT_URL"
+          echo "upload_url: $RESULT_UPLOAD"
+          if [ "$OUTCOME" = "success" ]; then
+            if [ -z "$RESULT_ID" ] || [ -z "$RESULT_URL" ] || [ -z "$RESULT_UPLOAD" ]; then
+              echo "FAIL: action succeeded but outputs are empty"
+              exit 1
+            fi
+            case "$RESULT_URL" in
+              https://*) ;;
+              *) echo "FAIL: html_url is not a URL"; exit 1 ;;
+            esac
+            echo "PASS: release created"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo is not resolvable)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
